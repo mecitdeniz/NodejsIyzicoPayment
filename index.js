@@ -4,13 +4,14 @@ const app = express();
 const bodyParser = require('body-parser')
 
 const Iyzipay = require('iyzipay');
-const { stat } = require('fs');
+
 //Initialize Iyzipay
 const iyzipay = new Iyzipay({
     apiKey: 'sandbox-uhanfVd47M9da1aSBXgBqDVVrbmdzdC1',
     secretKey: 'sandbox-OHR4BLsGSdOH2Yo5PFTEFHLtZdZD9fDe',
     uri: 'https://sandbox-api.iyzipay.com'
 });
+
 const BasketItems = [
     {
         id: 'BI101',
@@ -36,15 +37,8 @@ const BasketItems = [
         itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
         price: '0.2'
     },
-    {
-        id: 'BI103',
-        name: 'Usb',
-        category1: 'Electronics',
-        category2: 'Usb / Cable',
-        itemType: Iyzipay.BASKET_ITEM_TYPE.PHYSICAL,
-        price: '0.2'
-    }
 ]
+
 let totalPrice = 0;
 BasketItems.forEach(item => {
     totalPrice += parseFloat(item.price)
@@ -59,12 +53,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get('/',(req,res)=>{
-
-    let totalPrice = 0;
-    BasketItems.forEach(item => {
-        totalPrice += parseFloat(item.price)
-    });
-    res.render('pages/index',{
+    res.render('index',{
         BasketItems,
         totalPrice
     });
@@ -115,10 +104,8 @@ app.post('/checkout',(req,res)=>{
     };
 
     iyzipay.checkoutFormInitialize.create(request,function (err,result){
-        res.render('pages/checkout',{form : result.checkoutFormContent})
-        console.log(result)
-        //res.send(result.checkoutFormContent + '<div id="iyzipay-checkout-form" class="responsive"></div>');
-    
+        res.render('checkout',{form : result.checkoutFormContent})
+        //console.log(result)
     })
 })
 
@@ -129,30 +116,10 @@ app.post('/result',(req,res)=>{
         conversationId: '123456789',
         token: req.body.token
     }, function (err, result) {
-        console.log(result)
-        if(result.paymentStatus === 'SUCCESS'){
-            res.render('pages/success');
-        }else{
-            res.render('pages/failure');
-        }
+        const message = result.paymentStatus === 'SUCCESS' ? "Tebrikler Ödeme Başarılı" : "Hay Aksi! Bir şeyler ters gitti"
+        res.render('result',{ message });
+        //console.log(result)
     });
-
-
 })
-
-
-
-app.get('/createForm', async(req,res) =>{
-    
-
-    
-})
-
-
-
-
-
-
-
 
 app.listen(3000,console.log("Server started on port 3000"))
